@@ -1,7 +1,5 @@
 import { openai } from '@ai-sdk/openai';
 import { streamText, UIMessage, convertToModelMessages } from 'ai';
-import { z } from 'zod';
-import { sensorDataStore } from '@/lib/stores/sensor-store';
 import { 
   getSensorDataTool, 
   analyzeEnvironmentalConditionsTool, 
@@ -13,15 +11,13 @@ import {
   simulateEnvironmentalConditionTool,
   resetSensorTool
 } from '@/lib/tools/index';
-import { conversationStorage } from '@/lib/conversation-storage';
-import { eventEmitter } from '@/lib/event-emitter';
 
 // Allow streaming responses up to 30 seconds
 export const maxDuration = 30;
 
 export async function POST(req: Request) {
   console.log('🚀 Chat API route called');
-  const { messages, context }: { messages: UIMessage[], context?: any } = await req.json();
+  const { messages, context }: { messages: UIMessage[], context?: Record<string, unknown> } = await req.json();
   console.log('📨 Messages received:', messages.length);
 
   try {
