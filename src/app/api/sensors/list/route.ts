@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { sensorDataStore } from '@/lib/stores/sensor-store';
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     const sensors = Array.from(sensorDataStore.entries()).map(([sensor_id, data]) => ({
       id: sensor_id,
