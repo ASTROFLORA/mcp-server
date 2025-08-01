@@ -17,9 +17,6 @@ export default function Chat() {
       console.log('Message finished:', message);
     },
   });
-  
-  console.log('Current messages:', messages);
-  console.log('Chat status:', status);
   return (
     <Box 
       minH="100vh" 
@@ -159,10 +156,8 @@ export default function Chat() {
         as='form'
         onSubmit={(e) => {
           e.preventDefault();
-          console.log('🚀 Form submitted with input:', input);
-          console.log('📨 Sending message...');
           sendMessage({ text: input });
-          console.log('✅ Message sent, clearing input');
+
           setInput('');
         }}
         position='fixed'

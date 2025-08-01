@@ -1,36 +1,122 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🧬 AstroFlora AI Chat
 
-## Getting Started
+AstroFlora AI is an advanced biological intelligence assistant built with Next.js and the AI SDK. It specializes in plant biology, genetics, biotechnology, and life sciences, featuring real-time tool integration for enhanced functionality.
 
-First, run the development server:
+## ✨ Features
 
+- **🤖 AI-Powered Chat**: Powered by OpenAI GPT-4o with biological expertise
+- **🛠️ Tool Integration**: Real-time tools including Colombia time lookup
+- **⚡ Streaming Responses**: Real-time streaming chat interface
+- **🎨 Modern UI**: Beautiful Chakra UI components with dark/light mode
+- **📱 Responsive Design**: Optimized for desktop and mobile devices
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- Node.js 18+ or Bun
+- OpenAI API key
+
+### Installation
+
+1. Clone the repository:
+```bash
+git clone <your-repo-url>
+cd astroflora-ai-chat
+```
+
+2. Install dependencies:
+```bash
+npm install
+# or
+bun install
+```
+
+3. Set up environment variables:
+```bash
+cp .env.example .env.local
+```
+
+Add your OpenAI API key to `.env.local`:
+```bash
+OPENAI_API_KEY=your_openai_api_key_here
+```
+
+4. Run the development server:
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
 # or
 bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+5. Open [http://localhost:3000](http://localhost:3000) with your browser.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🛠️ Available Tools
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- **🕐 Colombia Time**: Get current time in Colombia (COT/UTC-5)
+- More tools coming soon...
 
-## Learn More
+## 🏗️ Architecture
 
-To learn more about Next.js, take a look at the following resources:
+- **Frontend**: Next.js 15 with App Router
+- **UI**: Chakra UI v3 with modern design system
+- **AI**: OpenAI GPT-4o via AI SDK v5
+- **Streaming**: Real-time response streaming
+- **Tools**: Direct AI SDK tool integration (no MCP dependencies)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 📂 Project Structure
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```
+src/
+├── app/
+│   ├── api/
+│   │   ├── chat/          # Main chat API endpoint
+│   │   └── colombia-time/ # Colombia time API endpoint
+│   ├── layout.tsx         # Root layout
+│   └── page.tsx          # Chat interface
+├── components/
+│   └── ui/               # Reusable UI components
+└── ...
+```
 
-## Deploy on Vercel
+## 🔧 Development
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Available Scripts
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run start` - Start production server
+- `npm run lint` - Run ESLint
+
+### Adding New Tools
+
+1. Create tool definition in `src/app/api/chat/route.ts`
+2. Add tool logic using AI SDK `tool()` function
+3. Update system prompt if needed
+
+## 🚀 Deployment
+
+Deploy on Vercel (recommended):
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=<your-repo-url>)
+
+Or manually:
+
+1. Build the project: `npm run build`
+2. Deploy to your preferred platform
+3. Set environment variables on your hosting platform
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Submit a pull request
+
+## 📄 License
+
+This project is licensed under the MIT License.
+
+---
+
+Built with ❤️ using Next.js, AI SDK, and OpenAI GPT-4o

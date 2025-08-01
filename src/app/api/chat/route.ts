@@ -1,102 +1,74 @@
 import { openai } from '@ai-sdk/openai';
-import { streamText, UIMessage, convertToModelMessages, tool } from 'ai';
+import { streamText, UIMessage, convertToModelMessages } from 'ai';
 import { z } from 'zod';
+import { sensorDataStore } from '@/lib/stores/sensor-store';
+import { 
+  getSensorDataTool, 
+  analyzeEnvironmentalConditionsTool, 
+  searchConversationsTool, 
+  getConversationStatsTool, 
+  addConversationTagTool,
+  setSensorValueTool,
+  adjustSensorValueTool,
+  simulateEnvironmentalConditionTool,
+  resetSensorTool
+} from '@/lib/tools/index';
+import { conversationStorage } from '@/lib/conversation-storage';
+import { eventEmitter } from '@/lib/event-emitter';
 
 // Allow streaming responses up to 30 seconds
 export const maxDuration = 30;
 
 export async function POST(req: Request) {
   console.log('🚀 Chat API route called');
-  const { messages }: { messages: UIMessage[] } = await req.json();
+  const { messages, context }: { messages: UIMessage[], context?: any } = await req.json();
   console.log('📨 Messages received:', messages.length);
 
   try {
-    // Create Colombia time tool using AI SDK tool format
-    console.log('🛠️ Creating Colombia time tool...');
+    console.log('🛠️ Creating sensor tools...');
+    
+    // Prepare sensor context for the AI
+    const sensorContext = context ? `\n\nCurrent sensor data:\n${JSON.stringify(context, null, 2)}` : '';
     
     console.log('🤖 Starting streamText...');
     const result = streamText({
       model: openai('gpt-4o'),
       messages: convertToModelMessages(messages),
-      system: `You are AstroFlora AI, an advanced biological intelligence assistant specializing in plant biology, genetics, biotechnology, and life sciences.
+      system: `You are AstroFlora AI, an advanced biological intelligence assistant specializing in plant biology, genetics, biotechnology, environmental monitoring, and agricultural sciences.
 
-You have access to a tool that can get the current time in Colombia. When users ask about the current time in Colombia, use the get_colombia_time tool to provide accurate, real-time information.
+You have access to comprehensive sensor monitoring and manipulation tools for the Astroflora Antares Control Central system. You can:
 
-Always be helpful, accurate, and maintain your biology expertise focus. Provide detailed and scientific responses when discussing biological topics.`,
+MONITORING TOOLS:
+- Get current sensor readings (temperature, humidity, CO2, pressure) from multiple locations
+- Analyze environmental conditions for plant health
+- Search conversation history for past sensor discussions
+- Generate analytics and insights
+
+SENSOR MANIPULATION TOOLS:
+- Set specific sensor values (temperature, humidity, CO2, pressure)
+- Adjust sensor values by relative amounts (increase/decrease)
+- Simulate environmental conditions (hot_day, cold_night, humid_weather, dry_weather, optimal_growth, stress_test)
+- Reset sensors to default values
+
+AVAILABLE SENSORS:
+- main_room (Main Room)
+- greenhouse_01 (Greenhouse 01) 
+- laboratory (Laboratory)
+- cultivation_area (Cultivation Area)
+
+When users ask to modify environmental conditions, use the appropriate manipulation tools. Always explain what you're doing and provide scientific context for environmental changes.
+
+Always provide scientific, accurate responses focused on plant biology and environmental optimization.${sensorContext}`,
       tools: {
-        get_colombia_time: tool({
-          description: 'Get the current time in Colombia (COT - Colombia Time UTC-5)',
-          inputSchema: z.object({
-            format: z.enum(['12', '24']).default('24').describe('Time format: 12-hour or 24-hour format'),
-          }),
-          execute: async ({ format }) => {
-            try {
-              console.log('⏰ Fetching Colombia time...');
-              const response = await fetch('https://timeapi.io/api/Time/current/zone?timeZone=America/Bogota');
-              
-              if (!response.ok) {
-                throw new Error(`TimeAPI error: ${response.status}`);
-              }
-              
-              const data = await response.json();
-              const colombiaDateTime = new Date(data.dateTime);
-              
-              const timeOnly = new Intl.DateTimeFormat('en-US', {
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit',
-                hour12: format === '12',
-              }).format(colombiaDateTime);
-
-              const dateOnly = new Intl.DateTimeFormat('en-US', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-                weekday: 'long',
-              }).format(colombiaDateTime);
-
-              return `🕐 **Current Time in Colombia** 🇨🇴
-
-⏰ **Time:** ${timeOnly}
-📅 **Date:** ${dateOnly}  
-🌍 **Timezone:** ${data.timeZone} (COT)
-📍 **Location:** Colombia 🇨🇴
-🔧 **Format:** ${format === '12' ? '12-hour' : '24-hour'}
-🌐 **Source:** TimeAPI
-⚡ **UTC Offset:** -05:00`;
-              
-            } catch (error) {
-              console.warn('TimeAPI failed, using fallback:', error);
-              
-              const now = new Date();
-              const timeOnly = new Intl.DateTimeFormat('en-US', {
-                timeZone: 'America/Bogota',
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit',
-                hour12: format === '12',
-              }).format(now);
-
-              const dateOnly = new Intl.DateTimeFormat('en-US', {
-                timeZone: 'America/Bogota',
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-                weekday: 'long',
-              }).format(now);
-
-              return `🕐 **Current Time in Colombia** 🇨🇴 *(Fallback)*
-
-⏰ **Time:** ${timeOnly}
-📅 **Date:** ${dateOnly}
-🌍 **Timezone:** COT (UTC-5)
-📍 **Location:** Colombia 🇨🇴
-🔧 **Format:** ${format === '12' ? '12-hour' : '24-hour'}
-🌐 **Source:** Browser Fallback
-⚠️ **Note:** TimeAPI unavailable, using system time`;
-            }
-          },
-        }),
+        get_sensor_data: getSensorDataTool,
+        analyze_environmental_conditions: analyzeEnvironmentalConditionsTool,
+        search_conversations: searchConversationsTool,
+        get_conversation_stats: getConversationStatsTool,
+        add_conversation_tag: addConversationTagTool,
+        set_sensor_value: setSensorValueTool,
+        adjust_sensor_value: adjustSensorValueTool,
+        simulate_environmental_condition: simulateEnvironmentalConditionTool,
+        reset_sensor: resetSensorTool,
       },
     });
 
@@ -113,11 +85,11 @@ Always be helpful, accurate, and maintain your biology expertise focus. Provide 
     const result = streamText({
       model: openai('gpt-4o'),
       messages: convertToModelMessages(messages),
-      system: `You are AstroFlora AI, an advanced biological intelligence assistant specializing in plant biology, genetics, biotechnology, and life sciences.
+      system: `You are AstroFlora AI, an advanced biological intelligence assistant specializing in plant biology, genetics, biotechnology, environmental monitoring, and agricultural sciences.
 
-Note: Tools are currently unavailable. For time-related queries, you can direct users to check world clock applications or suggest they try again later.
+Note: Sensor tools are currently unavailable. You can still provide general plant care advice and biological expertise.
 
-Always be helpful, accurate, and maintain your biology expertise focus.`,
+Always be helpful, accurate, and maintain your biology and environmental expertise focus.`,
     });
 
     return result.toUIMessageStreamResponse();
