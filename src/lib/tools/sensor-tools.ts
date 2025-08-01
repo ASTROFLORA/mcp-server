@@ -50,21 +50,24 @@ export const getSensorDataTool = tool({
         return sensorInfo;
       } else {
         if (sensors.length === 0) {
-          return 'No sensor data available';
+          return JSON.stringify({ error: 'No sensor data available' });
         }
 
-        const sensorsData = sensors.map((sensor: { sensor_id: string; temperature?: number; humidity?: number; co2?: number; pressure?: number; timestamp: string }) => {
-          return [
-            `Sensor ${sensor.sensor_id}:`,
-            `  Temperature: ${sensor.temperature !== undefined ? `${sensor.temperature}°C` : 'Not available'}`,
-            `  Humidity: ${sensor.humidity !== undefined ? `${sensor.humidity}%` : 'Not available'}`,
-            `  CO2: ${sensor.co2 !== undefined ? `${sensor.co2} ppm` : 'Not available'}`,
-            `  Pressure: ${sensor.pressure !== undefined ? `${sensor.pressure} hPa` : 'Not available'}`,
-            `  Last Update: ${new Date(sensor.timestamp).toLocaleString()}`
-          ].join('\n');
-        }).join('\n\n');
+        // Return structured JSON data for analysis
+        const sensorData = sensors.map((sensor: { sensor_id: string; temperature?: number; humidity?: number; co2?: number; pressure?: number; timestamp: string }) => ({
+          sensor_id: sensor.sensor_id,
+          temperature: sensor.temperature,
+          humidity: sensor.humidity,
+          co2: sensor.co2,
+          pressure: sensor.pressure,
+          timestamp: sensor.timestamp
+        }));
         
-        return `All Sensors Data:\n\n${sensorsData}`;
+        return JSON.stringify({
+          sensors: sensorData,
+          count: sensorData.length,
+          timestamp: new Date().toISOString()
+        });
       }
     } catch (error) {
       console.error('Sensor tool error:', error);
