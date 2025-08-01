@@ -105,31 +105,31 @@ export default function SensorsPage() {
       eventSourceRef.current = eventSource;
 
       eventSource.onopen = () => {
-        console.log('SSE connection opened');
         setIsConnected(true);
       };
 
       eventSource.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data);
-          console.log('Received SSE data:', data);
 
           if (data.type === 'initial_data') {
-            setSensors(data.sensors || []);
+            const sensorsArray = Array.isArray(data.sensors) ? data.sensors : [];
+            setSensors(sensorsArray);
             setLoading(false);
             // Mark all sensors as connected
             const sensorIds = new Set<string>();
-            data.sensors?.forEach((s: SensorData) => {
+            sensorsArray.forEach((s: SensorData) => {
               if (s.sensor_id) {
                 sensorIds.add(s.sensor_id);
               }
             });
             setConnectedSensors(sensorIds);
           } else if (data.type === 'sensor_update') {
-            setSensors(data.sensors || []);
+            const sensorsArray = Array.isArray(data.sensors) ? data.sensors : [];
+            setSensors(sensorsArray);
             // Update connected sensors
             const sensorIds = new Set<string>();
-            data.sensors?.forEach((s: SensorData) => {
+            sensorsArray.forEach((s: SensorData) => {
               if (s.sensor_id) {
                 sensorIds.add(s.sensor_id);
               }
@@ -177,10 +177,67 @@ export default function SensorsPage() {
 
 
   useEffect(() => {
-    console.log("Initializing sensors page...");
-    
-    // Initialize SSE connection
-    initializeEventSource();
+    // First try to get existing sensor data, then connect to SSE
+    const loadSensorData = async () => {
+      try {
+        // Try to get existing sensor data
+        const listResponse = await fetch('/api/sensors/list');
+        let sensorsData = [];
+        
+        if (listResponse.ok) {
+          const result = await listResponse.json();
+          sensorsData = result.sensors || [];
+        }
+        
+        // If no sensors found, initialize mock data
+        if (sensorsData.length === 0) {
+          const initResponse = await fetch('/api/sensors/init', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          });
+          
+          if (initResponse.ok) {
+            // After initialization, get the sensor data
+            const listResponse2 = await fetch('/api/sensors/list');
+            if (listResponse2.ok) {
+              const result2 = await listResponse2.json();
+              sensorsData = result2.sensors || [];
+            }
+          }
+        }
+        
+        // Set initial sensor data
+        if (sensorsData.length > 0) {
+          setSensors(sensorsData);
+          const sensorIds = new Set<string>();
+          sensorsData.forEach((s: SensorData) => {
+            if (s.sensor_id) {
+              sensorIds.add(s.sensor_id);
+            }
+          });
+          setConnectedSensors(sensorIds);
+        }
+        
+        setLoading(false);
+        
+        // After loading initial data, connect to SSE for real-time updates
+        initializeEventSource();
+        
+      } catch (error) {
+        console.error('Error loading sensor data:', error);
+        setLoading(false);
+        toaster.create({
+          title: "Connection Error",
+          description: "Failed to load sensor data",
+          type: "error",
+          duration: 3000,
+        });
+      }
+    };
+
+    loadSensorData();
 
     // Cleanup function will be called when component unmounts
     return () => {
@@ -216,13 +273,12 @@ export default function SensorsPage() {
   };
 
   // Filter sensors based on selected filter
+  const sensorsArray = Array.isArray(sensors) ? sensors : [];
   const filteredSensors = selectedSensorFilter === "all" 
-    ? sensors 
-    : sensors.filter(sensor => sensor.sensor_id === selectedSensorFilter);
+    ? sensorsArray 
+    : sensorsArray.filter(sensor => sensor.sensor_id === selectedSensorFilter);
 
   // Collect all sensor data for display
-  console.log("Current sensors state:", sensors);
-  console.log("Filtered sensors:", filteredSensors);
   const allMetrics = filteredSensors.flatMap((sensor) => [
     {
       title: "Temperature",
@@ -310,7 +366,7 @@ export default function SensorsPage() {
                 }}
               >
                 <option value="all">All Sensors</option>
-                {sensors.map((sensor) => (
+                {sensorsArray.map((sensor) => (
                   <option key={sensor.sensor_id} value={sensor.sensor_id}>
                     {getSensorLocation(sensor.sensor_id)}
                   </option>
@@ -342,7 +398,7 @@ export default function SensorsPage() {
           <Box>
             <HStack justify="space-between" align="center" mb={4}>
               <Text fontSize="md" color="gray.600">
-                Showing {filteredSensors.length} of {sensors.length} sensor{sensors.length !== 1 ? 's' : ''}
+                Showing {filteredSensors.length} of {sensorsArray.length} sensor{sensorsArray.length !== 1 ? 's' : ''}
                 {selectedSensorFilter !== "all" && ` • ${getSensorLocation(selectedSensorFilter)}`}
               </Text>
               <Text fontSize="sm" color="gray.500">

@@ -1,26 +1,41 @@
 import { NextRequest } from 'next/server';
-import { sensorDataStore } from '@/lib/stores/sensor-store';
-import { simulateSensorFluctuations } from '@/lib/mock-data';
 
 export async function GET(request: NextRequest) {
   // Create a readable stream for Server-Sent Events
   const stream = new ReadableStream({
     start(controller) {
+      // Helper function to get sensor data from list endpoint
+      const getSensorData = async () => {
+        try {
+          const response = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/sensors/list`);
+          if (response.ok) {
+            const data = await response.json();
+            return data.sensors || [];
+          }
+          return [];
+        } catch (error) {
+          console.error('Error fetching sensor data:', error);
+          return [];
+        }
+      };
+
       // Send initial sensor data
-      const initialData = sensorDataStore.getAllSensors();
-      controller.enqueue(`data: ${JSON.stringify({
-        type: 'initial_data',
-        sensors: initialData
-      })}\n\n`);
+      const sendInitialData = async () => {
+        const sensors = await getSensorData();
+        controller.enqueue(`data: ${JSON.stringify({
+          type: 'initial_data',
+          sensors: sensors
+        })}\n\n`);
+      };
+
+      // Send initial data immediately
+      sendInitialData();
 
       // Set up periodic updates
-      const interval = setInterval(() => {
+      const interval = setInterval(async () => {
         try {
-          // Simulate sensor fluctuations
-          simulateSensorFluctuations();
-          
-          // Get updated sensor data
-          const sensors = sensorDataStore.getAllSensors();
+          // Get updated sensor data from list endpoint
+          const sensors = await getSensorData();
           
           // Send updated data
           controller.enqueue(`data: ${JSON.stringify({

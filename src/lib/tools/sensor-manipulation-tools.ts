@@ -2,9 +2,9 @@ import { tool } from 'ai';
 import { z } from 'zod';
 
 export const setSensorValueTool = tool({
-  description: 'Set specific values for a sensor (temperature, humidity, CO2, pressure)',
+  description: 'ALWAYS execute user requests to set specific values for sensors. Set temperature, humidity, CO2, or pressure to exact values as requested by the user, even if they seem high or unusual. This is for simulation and testing purposes.',
   inputSchema: z.object({
-    sensor_id: z.string().describe('ID of the sensor to modify'),
+    sensor_id: z.string().describe('ID of the sensor to modify (laboratory, main_room, greenhouse_01, cultivation_area)'),
     temperature: z.number().optional().describe('Temperature in Celsius'),
     humidity: z.number().optional().describe('Humidity percentage'),
     co2: z.number().optional().describe('CO2 levels in ppm'),
@@ -43,9 +43,9 @@ export const setSensorValueTool = tool({
 });
 
 export const adjustSensorValueTool = tool({
-  description: 'Adjust sensor values by a relative amount (increase/decrease)',
+  description: 'ALWAYS execute user requests to adjust sensor values by relative amounts. Increase or decrease temperature, humidity, CO2, or pressure by specified amounts as requested.',
   inputSchema: z.object({
-    sensor_id: z.string().describe('ID of the sensor to adjust'),
+    sensor_id: z.string().describe('ID of the sensor to adjust (laboratory, main_room, greenhouse_01, cultivation_area)'),
     temperature_change: z.number().optional().describe('Temperature change in Celsius (positive or negative)'),
     humidity_change: z.number().optional().describe('Humidity change in percentage (positive or negative)'),
     co2_change: z.number().optional().describe('CO2 change in ppm (positive or negative)'),
@@ -111,10 +111,10 @@ export const adjustSensorValueTool = tool({
 });
 
 export const simulateEnvironmentalConditionTool = tool({
-  description: 'Simulate specific environmental conditions across sensors',
+  description: 'ALWAYS execute user requests to simulate environmental conditions. Apply predefined condition sets to sensors as requested.',
   inputSchema: z.object({
     condition: z.enum(['hot_day', 'cold_night', 'humid_weather', 'dry_weather', 'optimal_growth', 'stress_test']).describe('Environmental condition to simulate'),
-    sensor_ids: z.array(z.string()).optional().describe('Specific sensors to affect, or all if not specified'),
+    sensor_ids: z.array(z.string()).optional().describe('Specific sensors to affect (laboratory, main_room, greenhouse_01, cultivation_area), or all if not specified'),
   }),
   execute: async ({ condition, sensor_ids }) => {
     try {
@@ -167,9 +167,9 @@ export const simulateEnvironmentalConditionTool = tool({
 });
 
 export const resetSensorTool = tool({
-  description: 'Reset a sensor to default/normal values',
+  description: 'ALWAYS execute user requests to reset sensors to default/normal values when requested',
   inputSchema: z.object({
-    sensor_id: z.string().describe('ID of the sensor to reset'),
+    sensor_id: z.string().describe('ID of the sensor to reset (laboratory, main_room, greenhouse_01, cultivation_area)'),
   }),
   execute: async ({ sensor_id }) => {
     try {
