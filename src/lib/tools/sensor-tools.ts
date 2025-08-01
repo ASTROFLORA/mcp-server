@@ -30,12 +30,12 @@ export const getSensorDataTool = tool({
       const sensors = apiData.sensors || [];
       
       console.log(`Found ${sensors.length} sensors from API`);
-      console.log('Available sensor IDs:', sensors.map((s: any) => s.sensor_id));
-      
+      console.log('Available sensor IDs:', sensors.map((s: { sensor_id: string }) => s.sensor_id));
+
       if (sensor_id) {
-        const sensor = sensors.find((s: any) => s.sensor_id === sensor_id);
+        const sensor = sensors.find((s: { sensor_id: string }) => s.sensor_id === sensor_id);
         if (!sensor) {
-          return `Sensor ${sensor_id} not found or has no data. Available sensors: ${sensors.map((s: any) => s.sensor_id).join(', ')}`;
+          return `Sensor ${sensor_id} not found or has no data. Available sensors: ${sensors.map((s: { sensor_id: string }) => s.sensor_id).join(', ')}`;
         }
         
         const sensorInfo = [
@@ -52,8 +52,8 @@ export const getSensorDataTool = tool({
         if (sensors.length === 0) {
           return 'No sensor data available';
         }
-        
-        const sensorsData = sensors.map((sensor: any) => {
+
+        const sensorsData = sensors.map((sensor: { sensor_id: string; temperature?: number; humidity?: number; co2?: number; pressure?: number; timestamp: string }) => {
           return [
             `Sensor ${sensor.sensor_id}:`,
             `  Temperature: ${sensor.temperature !== undefined ? `${sensor.temperature}°C` : 'Not available'}`,

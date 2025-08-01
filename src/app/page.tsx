@@ -9,7 +9,7 @@ import Markdown from 'react-markdown';
 
 export default function Chat() {
   const [input, setInput] = useState('');
-  const { messages, sendMessage, status } = useChat({
+  const { messages, sendMessage } = useChat({
     onError: (error) => {
       console.error('Chat error:', error);
     },

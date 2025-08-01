@@ -10,7 +10,7 @@ import {
   adjustSensorValueTool,
   simulateEnvironmentalConditionTool,
   resetSensorTool
-} from '@/lib/tools/index';
+} from '@/lib/tools/';
 
 // Allow streaming responses up to 30 seconds
 export const maxDuration = 30;

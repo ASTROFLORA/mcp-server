@@ -1,9 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { initializeMockSensors } from '@/lib/mock-data';
 
-export async function POST(request: NextRequest) {
+export async function POST() {
   try {
-    // Initialize the mock sensor data
     initializeMockSensors();
     
     return NextResponse.json({

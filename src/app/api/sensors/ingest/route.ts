@@ -7,21 +7,15 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const data = SensorDataSchema.parse(body);
     
-    // Check if this is a new sensor
     const isNewSensor = !sensorDataStore.has(data.sensor_id);
-    
-    // Store the sensor data (this will also notify subscribers)
     sensorDataStore.set(data.sensor_id, data);
-    
-    // Emit sensor data update event
+
     eventEmitter.emitSensorDataUpdate(data);
-    
-    // If this is the first data from this sensor, emit connected event
+  
     if (isNewSensor) {
       eventEmitter.emitSensorConnected(data.sensor_id);
     }
     
-    // Check for alerts
     checkSensorAlerts(data);
     
     return new NextResponse(null, { status: 204 });
@@ -64,5 +58,4 @@ function checkSensorAlerts(data: SensorData) {
   });
 }
 
-// Export store for external access
 export { sensorDataStore };
